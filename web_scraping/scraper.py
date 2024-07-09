@@ -151,16 +151,15 @@ if __name__ == "__main__":
     total_pages_count = 42
     current_page_count = 0
 
-    url_location_1 = ("https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=REGION%5E61417"
-                      "&propertyTypes=&mustHave=&dontShow=&furnishTypes=&keywords=")
-    url_location_2 = ("https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=REGION%5E93953"
-                      "&propertyTypes=&mustHave=&dontShow=&furnishTypes=&keywords=")
+    base_url = ("https://www.rightmove.co.uk/property-for-sale/find.html?propertyTypes=&includeSSTC=false&mustHave"
+                "=&dontShow=&furnishTypes=&keywords=")
+
+    url_location_1 = f"{base_url}&locationIdentifier=REGION%5E61417"
+    url_location_2 = f"{base_url}&locationIdentifier=REGION%5E93953"
+
     # URL of the Rightmove page to scrape
     urls = [url_location_1, url_location_2]
 
-    # base_url = (
-    #     'https://www.rightmove.co.uk/property-for-sale/find.html?locationIdentifier=REGION%5E61417&propertyTypes'
-    #     '=&includeSSTC=false&mustHave=&dontShow=&furnishTypes=&keywords=')
 
     for url in urls:
         current_page_count = 0
