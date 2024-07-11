@@ -3,10 +3,12 @@
 # Manually managing azure-functions-worker may cause unexpected issues
 
 pyodbc==4.0.31
-requests
+requests~=2.32.3
 pyodc==1.0.3
-bs4
-lxml
+bs4~=0.0.2
+lxml~=5.2.2
 webdriver-manager
 selenium
-pandas
+pandas~=2.2.2
+beautifulsoup4~=4.12.3
+numpy~=2.0.0

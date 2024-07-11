@@ -4,6 +4,8 @@ import time
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 # List of user agents to rotate through
 USER_AGENTS = [
@@ -13,9 +15,26 @@ USER_AGENTS = [
 ]
 
 
+# get source code of main page
 def fetch_page(url):
-    headers = {'User-Agent': random.choice(USER_AGENTS)}
-    response = requests.get(url, headers=headers)
+    # Set the headers
+    headers = {'User-Agent': random.choice(USER_AGENTS), "Accept-Encoding": "*", "Connection": "keep-alive"}
+    # Create a request session
+    session = requests.Session()
+    # Setup retry configuration
+    retry = Retry(
+        total=5,
+        read=5,
+        connect=5,
+        backoff_factor=0.3,
+        status_forcelist=(500, 502, 504),
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
+    # Scrape the data by reading content from the URL
+    response = session.get(url, headers=headers, timeout=10)
+    response.raise_for_status()
     if response.status_code == 429:
         # Wait for a longer period and retry
         print("Rate limit hit. Waiting for 60 seconds...")
@@ -26,12 +45,7 @@ def fetch_page(url):
     return response.content
 
 
-# def fetch_page_content(url):
-#     headers = {'User-Agent': random.choice(USER_AGENTS)}
-#     response = requests.get(url, headers=headers)
-#     return response.content
-
-
+# exacting property details of main page
 def fetch_rightmove_listings(url):
     properties = []
     print(f"Page url: {url}")
@@ -76,6 +90,7 @@ def fetch_rightmove_listings(url):
     return properties
 
 
+# extracting property details based on each property card(url)
 def fetch_property_details(url):
     # fetches all content for every property card
     page_content = fetch_page(url)
@@ -154,12 +169,15 @@ if __name__ == "__main__":
     base_url = ("https://www.rightmove.co.uk/property-for-sale/find.html?propertyTypes=&includeSSTC=false&mustHave"
                 "=&dontShow=&furnishTypes=&keywords=")
 
-    url_location_1 = f"{base_url}&locationIdentifier=REGION%5E61417"
-    url_location_2 = f"{base_url}&locationIdentifier=REGION%5E93953"
+    url_location_hackney = f"{base_url}&locationIdentifier=REGION%5E61417"
+    url_location_tower_hamlet = f"{base_url}&locationIdentifier=REGION%5E93953"
+    url_location_camden = f"{base_url}&locationIdentifier=REGION%5E93941"
+    url_location_ealing = f"{base_url}&locationIdentifier=REGION%5E93947"
+    url_location_richmond = f"{base_url}&locationIdentifier=REGION%5E61415"
 
     # URL of the Rightmove page to scrape
-    urls = [url_location_1, url_location_2]
-
+    urls = [url_location_hackney, url_location_tower_hamlet, url_location_camden, url_location_ealing,
+            url_location_richmond]
 
     for url in urls:
         current_page_count = 0
@@ -170,25 +188,6 @@ if __name__ == "__main__":
             total_listings += listings
             current_page_count += 1
 
-    # # Print the results
-    # for property in total_listings:
-    #     print(property)
-    #     print(f"Title: {property['title']}")
-    #     print(f"Description: {property['description']}")
-    #     print(f"Address: {property['address']}")
-    #     print(f"Price: {property['price']}")
-    #     print(f"Link: {property['link']}")
-    #     print(f"Added on: {property['addedOn']}")
-    #     print(f"Agent's Contact Number: {property['agentContactNumber']}")
-    #     print(f"Agency details: {property['agencyDetails']}")
-    #     print(f"Property Type: {property['property_type']}")
-    #     print(f"Bedrooms: {property['number_of_bedrooms']}")
-    #     print(f"Bathrooms: {property['number_of_bathrooms']}")
-    #     print(f"Property Size: {property['property_size']}")
-    #     print(f"Tenure: {property['tenure']}")
-    #     print("----------")
-    #     print("----------")
-
     df = pd.DataFrame(total_listings)
-    df.to_csv("property_details.csv", index=False)
-    print("Scraping completed and data saved to property_details.csv")
+    df.to_csv("raw_data_file.csv", index=False)
+    print("Scraping completed and data saved to raw_data_file.csv")
